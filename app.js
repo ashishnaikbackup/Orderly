@@ -67,10 +67,11 @@ async function placeOrder(){
  const total=items.reduce((s,x)=>s+x.price*x.qty,0);
  try{
   if(!supabase||!restaurantId)throw Error("Supabase not connected");
-  const {data,error}=await supabase.from("orders").insert({restaurant_id:restaurantId,table_id:tableId,table_no:table,guest_name:guest,phone:phone||null,items,total,status:"new"}).select("id").single();
+  const orderId=(crypto&&crypto.randomUUID)?crypto.randomUUID():"00000000-0000-4000-8000-"+String(Date.now()).padStart(12,"0").slice(-12);
+  const {error}=await supabase.from("orders").insert({id:orderId,restaurant_id:restaurantId,table_id:tableId,table_no:table,guest_name:guest,phone:phone||null,items,total,status:"new"});
   if(error)throw error;
   cart=[];renderCart();$("custName").value="";$("phone").value="";
-  $("orderMsg").innerHTML='<div class="success">Order <strong>#'+String(data.id).slice(-6).toUpperCase()+'</strong> received for table <strong>'+esc(table)+'</strong>.</div>';
+  $("orderMsg").innerHTML='<div class="success">Order <strong>#'+String(orderId).slice(-6).toUpperCase()+'</strong> received for table <strong>'+esc(table)+'</strong>.</div>';
  }catch(e){
   console.error(e);
   const local={id:"local-"+Date.now(),restaurant_name:restaurantName,table_no:table,guest_name:guest,phone,items,total,status:"new",created_at:new Date().toISOString()};
