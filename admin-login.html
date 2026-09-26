@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Orderly — Staff Login</title><link rel="stylesheet" href="style.css">
+<style>.auth-wrap{max-width:460px;margin:8vh auto;padding:16px}.auth-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 10px 30px rgba(0,0,0,.05)}.auth-card h1{margin:0 0 6px;font-size:28px}.auth-card p{margin:0}.auth-actions{display:flex;gap:8px;margin-top:16px}.auth-msg{margin-top:12px;font-size:14px}.auth-note{margin-top:14px;padding:11px 12px;background:#f7f7f8;border-radius:10px;font-size:12px;color:var(--muted)}</style></head>
+<body><header class="topbar"><div class="brand"><div class="brand-title">Orderly</div><div class="brand-sub">Staff access</div></div></header>
+<main class="auth-wrap"><section class="auth-card"><h1>Staff login</h1><p class="small">Sign in to access the restaurant dashboard.</p>
+<div class="form-row"><label>Email</label><input id="email" type="email" autocomplete="username" placeholder="staff@example.com"></div>
+<div class="form-row"><label>Password</label><input id="password" type="password" autocomplete="current-password" placeholder="Your password"></div>
+<div class="auth-actions"><button class="btn primary btn-wide" id="loginBtn">Sign in</button><a class="btn ghost" href="index.html">Customer page</a></div>
+<div id="msg" class="auth-msg"></div><div class="auth-note">Staff accounts are created in Supabase Auth. The account must also be assigned to the Orderly restaurant as described in the README.</div>
+</section></main>
+<script src="supabase-config.js"></script><script type="module" src="admin-login.js"></script></body></html>
