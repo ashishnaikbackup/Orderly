@@ -1,81 +1,18 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Orderly — Menu</title>
-  <link rel="stylesheet" href="style.css">
-</head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Orderly — Scan & Order</title><link rel="stylesheet" href="style.css"></head>
 <body>
-
-<header class="topbar">
-  <div class="brand">
-    <!-- Minimal logo: text + small mark -->
-    <svg width="34" height="34" viewBox="0 0 24 24" class="logo-mark" aria-hidden>
-      <circle cx="12" cy="12" r="10" fill="#111" />
-      <text x="12" y="16" text-anchor="middle" font-family="Poppins, Arial" font-size="11" fill="#fff">O</text>
-    </svg>
-    <div class="brand-text">
-      <div class="brand-title">Orderly</div>
-      <div class="brand-sub">Scan • Order • Enjoy</div>
-    </div>
-  </div>
-
-  <div class="header-right">
-    <div id="restaurantNameSmall" class="rest-small">Restaurant</div>
-  </div>
-</header>
-
+<header class="topbar"><div class="brand"><div class="brand-title">Orderly</div><div class="brand-sub">Scan • Order • Enjoy</div></div><div class="header-right" id="restaurantNameSmall">Restaurant</div></header>
 <main id="app">
-  <section id="intro">
-    <div class="intro-row">
-      <h1 id="restaurantName">Orderly Restaurant</h1>
-      <div class="meta-row">
-        <div class="meta"><strong>Table:</strong> <span id="tableBadge">—</span></div>
-        <div class="meta"><strong>Guest:</strong> <span id="guestNameDisplay">—</span></div>
-      </div>
-    </div>
-    <p class="lead">Tap items to add. You can remove items from the cart before placing the order.</p>
-  </section>
-
-  <section id="menu" class="card">
-    <h2 class="section-title">Menu</h2>
-    <div id="menuItems" class="grid-cards">Loading menu…</div>
-  </section>
-
-  <section id="cart" class="card">
-    <h2 class="section-title">Your Cart</h2>
-    <div id="orderList" class="order-list">Cart is empty</div>
-
-    <div class="form-row">
-      <label for="custName">Your name</label>
-      <input id="custName" placeholder="e.g. Rahul" />
-    </div>
-
-    <div class="form-row two-col">
-      <div>
-        <label for="tableNo">Table / Room</label>
-        <input id="tableNo" placeholder="Auto-filled from QR or enter" />
-      </div>
-      <div>
-        <label for="phone">Phone (optional)</label>
-        <input id="phone" placeholder="e.g. 98XXXXXXXX" />
-      </div>
-    </div>
-
-    <div class="actions-row">
-      <button id="clearCart" class="btn ghost">Clear</button>
-      <button id="placeOrderBtn" class="btn primary">Place Order</button>
-    </div>
-
-    <div id="orderMsg" class="order-msg" aria-live="polite"></div>
-  </section>
+<section id="intro"><div class="intro-row"><div><h1 id="restaurantName">Orderly Restaurant</h1><p class="lead">Order directly from your table. No app required.</p></div><div class="meta-row"><div class="meta"><strong>Table</strong><span id="tableBadge">—</span></div><div class="meta"><strong>Guest</strong><span id="guestNameDisplay">—</span></div></div></div></section>
+<section id="menu" class="card"><div class="section-head"><h2 class="section-title">Menu</h2><span class="cart-count"><span id="itemCount">0</span> items</span></div><div id="menuItems">Loading menu…</div></section>
+<section id="cart" class="card"><div class="section-head"><h2 class="section-title">Your Order</h2><button id="clearCart" class="btn ghost">Clear</button></div><div id="orderList" class="order-list">Your cart is empty.</div>
+<div class="total-row"><span>Total</span><strong id="cartTotal">₹0</strong></div>
+<div class="form-row"><label for="custName">Your name</label><input id="custName" autocomplete="name" placeholder="e.g. Rahul"></div>
+<div class="form-row two-col"><div><label for="tableNo">Table / Room</label><input id="tableNo" placeholder="Table number"></div><div><label for="phone">Phone (optional)</label><input id="phone" autocomplete="tel" placeholder="98XXXXXXXX"></div></div>
+<div class="actions-row"><button id="placeOrderBtn" class="btn primary btn-wide">Place Order</button></div><div id="orderMsg" class="order-msg" aria-live="polite"></div></section>
 </main>
-
-<footer class="site-footer">
-  <div>Powered by <strong>Orderly</strong></div>
-</footer>
-
-<script src="app.js"></script>
-</body>
-</html>
+<footer class="site-footer">Powered by <strong>Orderly</strong> · <a href="admin.html">Dashboard</a> · <a href="qr-generator.html">QR Generator</a></footer>
+<script src="firebase-config.js"></script><script type="module" src="app.js"></script>
+</body></html>
