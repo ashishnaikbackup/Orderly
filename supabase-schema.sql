@@ -75,7 +75,7 @@ drop policy if exists "guest create valid orders" on public.orders;
 drop policy if exists "staff read orders" on public.orders;
 drop policy if exists "staff update orders" on public.orders;
 drop policy if exists "staff delete orders" on public.orders;
-create policy "guest create valid orders" on public.orders for insert to anon with check(
+create policy "guest create valid orders" on public.orders for insert to anon, authenticated with check(
   table_id is not null and
   exists(select 1 from public.tables t where t.id=orders.table_id and t.restaurant_id=orders.restaurant_id and t.table_no=orders.table_no and t.is_active=true) and
   exists(select 1 from public.restaurants r where r.id=orders.restaurant_id)
