@@ -36,31 +36,31 @@ The original 2025 version was a front-end-only prototype. The current version ke
 
 ### Order document
 
-```
+```json
 {
-  restaurantId: "demo-restaurant",
-  restaurant: "Orderly Restaurant",
-  table: "T4",
-  guest: "Rahul",
-  phone: "optional",
-  items: [
-    { id: "m1", name: "Masala Dosa", price: 120, qty: 2 }
+  "restaurantId": "demo-restaurant",
+  "restaurant": "Orderly Restaurant",
+  "table": "T4",
+  "guest": "Rahul",
+  "phone": "optional",
+  "items": [
+    { "id": "m1", "name": "Masala Dosa", "price": 120, "qty": 2 }
   ],
-  total: 240,
-  status: "new",
-  createdAt: <Firestore timestamp>
+  "total": 240,
+  "status": "new",
+  "createdAt": "<Firestore timestamp>"
 }
 ```
 
-## Important security note
+## Security note
 
-The example Firestore rules are intentionally permissive for a classroom/demo prototype. For a real deployment, use Firebase Authentication, restaurant/staff roles, and restaurant-scoped security rules.
+The example Firestore rules are intentionally permissive for a classroom/demo prototype. For real deployment, add Firebase Authentication, staff roles, restaurant-scoped access, and stricter validation rules.
 
 ## Project positioning
 
-Orderly is best presented as an **engineering project / working prototype**, not as a claim of a novel restaurant-ordering business. The useful technical story is the integration of QR context, a customer-facing web app, cloud persistence, and a real-time operations dashboard.
+Orderly is best presented as an **engineering project / working prototype**, not as a claim of a novel restaurant-ordering business. The technical story is the integration of QR context, a customer web app, cloud persistence, and a real-time operations dashboard.
 
-## Planned upgrades
+## Next upgrades
 
 - Firebase Authentication and staff roles
 - Dynamic menu management
