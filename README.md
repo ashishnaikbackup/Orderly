@@ -4,7 +4,7 @@ Orderly is a project-focused QR ordering system:
 
 **Scan table QR → Browse menu → Build cart → Place order → Restaurant receives live order → Update status**
 
-The original 2025 version was a front-end-only prototype. The current version keeps that idea and adds the missing backend and operations layer.
+The original 2025 version was a front-end prototype. The current version adds a Supabase/PostgreSQL backend and a live restaurant operations dashboard.
 
 ## Pages
 
@@ -17,52 +17,50 @@ The original 2025 version was a front-end-only prototype. The current version ke
 - Table-aware QR links using URL parameters
 - Mobile-first ordering UI
 - Cart quantity controls and totals
-- Firestore order persistence
-- Live dashboard with status flow: **New → Preparing → Ready → Completed**
+- Supabase/PostgreSQL order persistence
+- Realtime dashboard updates through Supabase Realtime
+- Order status flow: **New → Preparing → Ready → Completed**
 - Cancel order flow
 - Dashboard status counters and revenue summary
-- Demo mode when Firebase is not configured
+- Demo mode when Supabase is not configured
 - QR generator for table tent cards
 
-## Firebase setup
+## Supabase setup
 
-1. Create a Firebase project.
-2. Add a Firebase Web App.
-3. Create a Firestore database.
-4. Put the Web App configuration into `firebase-config.js`.
-5. Start with `firebase.rules.example` only for local/classroom testing.
-6. Open `qr-generator.html` and create a QR link for each table.
-7. Open `admin.html` on the restaurant/kitchen screen.
+1. Create a project at Supabase.
+2. Open the project's SQL Editor.
+3. Run `supabase-schema.sql`.
+4. Copy the Project URL and publishable/anon key into `supabase-config.js`.
+5. Open `qr-generator.html` and create a QR link for each table.
+6. Open `admin.html` on the restaurant/kitchen screen.
 
-### Order document
+### Database shape
 
-```json
-{
-  "restaurantId": "demo-restaurant",
-  "restaurant": "Orderly Restaurant",
-  "table": "T4",
-  "guest": "Rahul",
-  "phone": "optional",
-  "items": [
-    { "id": "m1", "name": "Masala Dosa", "price": 120, "qty": 2 }
-  ],
-  "total": 240,
-  "status": "new",
-  "createdAt": "<Firestore timestamp>"
-}
-```
+The project currently uses one main `orders` table:
+
+- `id` — order ID
+- `restaurant_name` — restaurant context
+- `table_no` — table that placed the order
+- `guest_name` — guest name
+- `phone` — optional phone
+- `items` — JSONB array containing ordered items
+- `total` — order total
+- `status` — new/preparing/ready/completed/cancelled
+- `created_at` / `updated_at` — timestamps
+
+The next architecture upgrade can split menu, tables, restaurants and order items into separate relational tables.
 
 ## Security note
 
-The example Firestore rules are intentionally permissive for a classroom/demo prototype. For real deployment, add Firebase Authentication, staff roles, restaurant-scoped access, and stricter validation rules.
+The SQL file contains permissive policies for a classroom/demo prototype. Before any real public deployment, add authentication, staff roles, restaurant-scoped access, validation, and stricter Row Level Security policies.
 
 ## Project positioning
 
-Orderly is best presented as an **engineering project / working prototype**, not as a claim of a novel restaurant-ordering business. The technical story is the integration of QR context, a customer web app, cloud persistence, and a real-time operations dashboard.
+Orderly is best presented as an **engineering project / working prototype**, not as a claim of a novel restaurant-ordering business. The technical story is the integration of QR context, a customer web app, PostgreSQL persistence, and a realtime operations dashboard.
 
 ## Next upgrades
 
-- Firebase Authentication and staff roles
+- Supabase Auth + staff roles
 - Dynamic menu management
 - Restaurant setup page
 - Kitchen display mode
