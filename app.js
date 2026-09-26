@@ -73,7 +73,7 @@ async function placeOrder(){
   $("orderMsg").innerHTML='<div class="success">Order <strong>#'+String(data.id).slice(-6).toUpperCase()+'</strong> received for table <strong>'+esc(table)+'</strong>.</div>';
  }catch(e){
   console.error(e);
-  const local={id:"local-"+Date.now(),restaurant,table_no:table,guest_name:guest,phone,items,total,status:"new",created_at:new Date().toISOString()};
+  const local={id:"local-"+Date.now(),restaurant_name:restaurantName,table_no:table,guest_name:guest,phone,items,total,status:"new",created_at:new Date().toISOString()};
   const stored=JSON.parse(localStorage.getItem("orderly_local_orders")||"[]");stored.push(local);localStorage.setItem("orderly_local_orders",JSON.stringify(stored));
   cart=[];renderCart();msg("Demo mode: order saved on this device. Connect Supabase to enable the live dashboard.");
  }
