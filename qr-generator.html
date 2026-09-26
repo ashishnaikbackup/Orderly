@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Orderly — QR Generator</title><link rel="stylesheet" href="style.css"></head><body>
+<header class="topbar"><div class="brand"><div class="brand-title">Orderly</div><div class="brand-sub">Table QR generator</div></div></header>
+<main id="app"><section class="card" style="max-width:720px;margin:24px auto"><h1>Generate a table QR</h1><p class="small">Create a table-specific ordering link for your QR tent card.</p>
+<div class="form-row"><label>Restaurant name</label><input id="restaurant" value="Orderly Restaurant"></div>
+<div class="form-row"><label>Table number</label><input id="table" value="T1"></div>
+<div class="form-row"><label>Ordering page URL</label><input id="base" readonly></div>
+<div class="actions-row"><button class="btn primary" id="generate">Generate QR</button><a class="btn ghost" id="open" target="_blank" rel="noopener">Open table menu</a></div>
+<div id="qr" style="margin-top:20px;text-align:center"></div></section></main>
+<script>
+const base=new URL("index.html",location.href).href;document.getElementById("base").value=base;
+function generate(){const restaurant=document.getElementById("restaurant").value.trim()||"Orderly Restaurant";const table=document.getElementById("table").value.trim()||"T1";const url=base+"?restaurant="+encodeURIComponent(restaurant)+"&table="+encodeURIComponent(table);document.getElementById("open").href=url;document.getElementById("qr").innerHTML='<img alt="QR code for '+table+'" width="240" height="240" src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data='+encodeURIComponent(url)+'">';}
+document.getElementById("generate").addEventListener("click",generate);generate();
+</script></body></html>
