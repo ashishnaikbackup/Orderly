@@ -28,6 +28,27 @@ function qrUrl(table){return new URL("index.html",location.href).href+"?restaura
 function renderTables(){$("addTableBtn").disabled=!canManage();$("tableList").innerHTML=tables.length?tables.map(t=>'<article class="table-card"><div class="order-top"><div><strong>'+esc(t.table_no)+'</strong><div class="small">'+(t.is_active?"Active":"Inactive")+'</div></div><span class="pill '+(t.is_active?"ready":"cancelled")+'">'+(t.is_active?"Live":"Off")+'</span></div><div class="table-row"><label class="toggle"><input type="checkbox" data-table-active="'+t.id+'" '+(t.is_active?"checked":"")+' '+(canManage()?"":"disabled")+'> Active</label><a class="btn ghost" target="_blank" rel="noopener" href="'+qrUrl(t.table_no)+'">Open menu</a></div><div class="qr-link">'+esc(qrUrl(t.table_no))+'</div><div class="order-actions"><a class="btn ghost" target="_blank" rel="noopener" href="qr-generator.html?restaurant='+encodeURIComponent(RESTAURANT_SLUG)+'&table='+encodeURIComponent(t.table_no)+'">QR generator</a></div></article>').join(""):'<div class="empty empty-wide">No tables configured.</div>';document.querySelectorAll("[data-table-active]").forEach(x=>x.onchange=()=>setTableActive(x.dataset.tableActive,x.checked));}
 async function setTableActive(id,active){if(!canManage())return;const {error}=await supabase.from("tables").update({is_active:active}).eq("id",id).eq("restaurant_id",restaurantId);if(error)alert(error.message);else await loadTables();}
 async function addTable(){if(!canManage())return;const tableNo=$("newTableNo").value.trim().toUpperCase();if(!/^T[A-Z0-9-]+$/.test(tableNo)){alert("Use a table number such as T7.");return;}const {error}=await supabase.from("tables").insert({restaurant_id:restaurantId,table_no:tableNo,is_active:true});if(error)alert(error.code==="23505"?"That table already exists.":error.message);else{$("newTableNo").value="";await loadTables();}}
-function activateTabs(){$(".admin-tabs").onclick=e=>{const b=e.target.closest("[data-section]");if(!b)return;document.querySelectorAll(".tab-btn").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("main section[id$=Section]").forEach(x=>x.hidden=true);$(b.dataset.section).hidden=false;};$("filters").onclick=e=>{const b=e.target.closest("[data-filter]");if(!b)return;filter=b.dataset.filter;document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x===b));renderOrders();};$("logoutBtn").onclick=async()=>{await supabase.auth.signOut();location.href="admin-login.html"};$("addMenuBtn").onclick=addMenu;$("addTableBtn").onclick=addTable;}
-async function init(){try{if(!await requireStaff())return;activateTabs();await Promise.all([loadOrders(),loadMenu(),loadTables()]);supabase.channel("orderly-orders").on("postgres_changes",{event:"*",schema:"public",table:"orders",filter:"restaurant_id=eq."+restaurantId},async()=>{try{await loadOrders()}catch(e){console.error(e)}}).subscribe();supabase.channel("orderly-management").on("postgres_changes",{event:"*",schema:"public",table:"menu_items",filter:"restaurant_id=eq."+restaurantId},async()=>{try{await loadMenu()}catch(e){console.error(e)}}).on("postgres_changes",{event:"*",schema:"public",table:"tables",filter:"restaurant_id=eq."+restaurantId},async()=>{try{await loadTables()}catch(e){console.error(e)}}).subscribe()}catch(e){console.error(e);$("connectionState").textContent="Supabase error";$("staffInfo").textContent=e.message||"Could not load dashboard."}}
-init();
+function activateTabs(){
+ const tabs=$(".admin-tabs"),filters=$("filters"),logout=$("logoutBtn"),addMenuBtn=$("addMenuBtn"),addTableBtn=$("addTableBtn");
+ if(tabs)tabs.addEventListener("click",e=>{const b=e.target.closest("[data-section]");if(!b)return;document.querySelectorAll(".tab-btn").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("main section[id$=Section]").forEach(x=>x.hidden=true);const section=$(b.dataset.section);if(section)section.hidden=false;});
+ if(filters)filters.addEventListener("click",e=>{const b=e.target.closest("[data-filter]");if(!b)return;filter=b.dataset.filter;document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x===b));renderOrders();});
+ if(logout)logout.addEventListener("click",async()=>{await supabase.auth.signOut();location.href="admin-login.html"});
+ if(addMenuBtn)addMenuBtn.addEventListener("click",addMenu);
+ if(addTableBtn)addTableBtn.addEventListener("click",addTable);
+}
+async function init(){
+ try{
+  if(!await requireStaff())return;
+  activateTabs();
+  await loadOrders();
+  await Promise.allSettled([loadMenu(),loadTables()]);
+  supabase.channel("orderly-orders").on("postgres_changes",{event:"*",schema:"public",table:"orders",filter:"restaurant_id=eq."+restaurantId},async()=>{try{await loadOrders()}catch(e){console.error(e)}}).subscribe();
+  supabase.channel("orderly-management").on("postgres_changes",{event:"*",schema:"public",table:"menu_items",filter:"restaurant_id=eq."+restaurantId},async()=>{try{await loadMenu()}catch(e){console.error(e)}}).on("postgres_changes",{event:"*",schema:"public",table:"tables",filter:"restaurant_id=eq."+restaurantId},async()=>{try{await loadTables()}catch(e){console.error(e)}}).subscribe();
+ }catch(e){
+  console.error(e);
+  const state=$("connectionState"),info=$("staffInfo");
+  if(state)state.textContent="Supabase error";
+  if(info)info.textContent=e.message||"Could not load dashboard.";
+ }
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
