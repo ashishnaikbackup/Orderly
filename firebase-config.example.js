@@ -1,6 +1,5 @@
-// Copy this file to firebase-config.js and replace the placeholders with your Firebase web app config.
-// IMPORTANT: firebase-config.js is intended to be local configuration and should not be committed with secrets.
-
+// Template for Orderly Firebase configuration.
+// Copy to firebase-config.js and add the values from your Firebase Web App.
 window.ORDERLY_FIREBASE_CONFIG = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT.firebaseapp.com",
