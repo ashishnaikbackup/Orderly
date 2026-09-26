@@ -70,7 +70,7 @@ grant select on public.tables to anon;
 grant select on public.menu_items to anon;
 grant select,insert,update,delete on public.orders to anon;
 
-alter publication supabase_realtime add table public.orders;
+do $ begin if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='orders') then alter publication supabase_realtime add table public.orders; end if; end $;
 
 insert into public.restaurants(name,slug) values('Orderly Demo Restaurant','orderly-demo') on conflict(slug) do nothing;
 insert into public.tables(restaurant_id,table_no)
