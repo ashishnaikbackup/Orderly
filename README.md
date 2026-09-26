@@ -88,3 +88,8 @@ Its technical value is the end-to-end integration of:
 
 **Ashish Naik**  
 GitHub: https://github.com/ashishnaikbackup
+
+
+## Verification
+
+Supabase backend verified on 2026-09-26: schema present, RLS enabled, Realtime publication contains `orders`, and an insert/read/delete integration test completed successfully.
