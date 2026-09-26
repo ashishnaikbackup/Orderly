@@ -1,65 +1,25 @@
-// Orderly restaurant dashboard — Supabase Realtime
+// Orderly staff dashboard — Supabase Auth + Realtime
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const cfg=window.ORDERLY_SUPABASE_CONFIG||{};
-const supabase=cfg.url&&cfg.anonKey&&!String(cfg.url).includes("REPLACE_ME")?createClient(cfg.url,cfg.anonKey):null;
-const RESTAURANT_SLUG="orderly-demo";
-let restaurantId=null,orders=[],filter="all";
-const $=id=>document.getElementById(id);
-const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-const money=n=>"₹"+Number(n||0).toLocaleString("en-IN");
-
-function dateFrom(o){return o.created_at?new Date(o.created_at):new Date();}
-function statusName(s){return s.charAt(0).toUpperCase()+s.slice(1);}
-function nextButtons(o){
- const b=[];
- if(o.status==="new")b.push('<button class="btn primary" data-status="preparing" data-id="'+o.id+'">Start preparing</button>');
- if(o.status==="preparing")b.push('<button class="btn primary" data-status="ready" data-id="'+o.id+'">Mark ready</button>');
- if(o.status==="ready")b.push('<button class="btn primary" data-status="completed" data-id="'+o.id+'">Complete</button>');
- if(!["completed","cancelled"].includes(o.status))b.push('<button class="btn ghost" data-status="cancelled" data-id="'+o.id+'">Cancel</button>');
- return b.join("");
-}
-function render(){
- const visible=orders.filter(o=>filter==="all"||o.status===filter).sort((a,b)=>dateFrom(b)-dateFrom(a));
- $("orders").innerHTML=visible.length?visible.map(o=>'<article class="order-card"><div class="order-top"><div><strong>#'+String(o.id).slice(-6).toUpperCase()+'</strong><div class="order-id">'+dateFrom(o).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+'</div></div><span class="pill '+esc(o.status)+'">'+statusName(o.status)+'</span></div><div style="margin-top:8px"><strong>Table '+esc(o.table_no)+'</strong> · '+esc(o.guest_name)+'</div><div class="order-items">'+(Array.isArray(o.items)?o.items:[]).map(i=>'<div class="order-item-line"><span>'+esc(i.name)+' × '+i.qty+'</span><strong>'+money(i.price*i.qty)+'</strong></div>').join("")+'</div><div style="display:flex;justify-content:space-between;font-weight:800"><span>Total</span><span>'+money(o.total)+'</span></div><div class="order-actions">'+nextButtons(o)+'</div></article>').join(""):'<div class="empty">No orders in this view.</div>';
- $("statNew").textContent=orders.filter(o=>o.status==="new").length;
- $("statPreparing").textContent=orders.filter(o=>o.status==="preparing").length;
- $("statReady").textContent=orders.filter(o=>o.status==="ready").length;
- $("statRevenue").textContent=money(orders.filter(o=>o.status!=="cancelled").reduce((s,o)=>s+Number(o.total||0),0));
- document.querySelectorAll("[data-status]").forEach(b=>b.onclick=()=>updateStatus(b.dataset.id,b.dataset.status));
-}
-async function updateStatus(id,status){
- if(!supabase||!restaurantId)return;
- const {error}=await supabase.from("orders").update({status,updated_at:new Date().toISOString()}).eq("id",id).eq("restaurant_id",restaurantId);
- if(error)console.error("Order update failed:",error);
-}
-async function loadOrders(){
- const {data,error}=await supabase.from("orders").select("*").eq("restaurant_id",restaurantId).order("created_at",{ascending:false});
- if(error)throw error;orders=data||[];render();
-}
-async function init(){
- if(!supabase){$("connectionState").textContent="Demo mode — connect Supabase";return;}
- try{
-  const r=await supabase.from("restaurants").select("id,name").eq("slug",RESTAURANT_SLUG).single();
-  if(r.error)throw r.error;
-  restaurantId=r.data.id;$("connectionState").textContent="Supabase live";
-  await loadOrders();
-  supabase.channel("orderly-orders")
-   .on("postgres_changes",{event:"*",schema:"public",table:"orders",filter:"restaurant_id=eq."+restaurantId},async()=>{try{await loadOrders();}catch(e){console.error(e);}})
-   .subscribe();
- }catch(e){console.error(e);$("connectionState").textContent="Supabase error";}
-}
-$("filters").onclick=e=>{const b=e.target.closest("[data-filter]");if(!b)return;filter=b.dataset.filter;document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x===b));render();};
-$("seedDemo").onclick=async()=>{
- if(!supabase||!restaurantId){alert("Supabase is not connected.");return;}
- const rows=[
-  {restaurant_id:restaurantId,table_no:"T1",guest_name:"Rahul",items:[{name:"Masala Dosa",qty:2,price:120},{name:"Cold Coffee",qty:1,price:80}],total:320,status:"new"},
-  {restaurant_id:restaurantId,table_no:"T4",guest_name:"Priya",items:[{name:"Paneer Butter Masala",qty:1,price:210},{name:"Cold Coffee",qty:2,price:80}],total:370,status:"preparing"}
- ];
- const {error}=await supabase.from("orders").insert(rows);if(error)console.error(error);
-};
-$("clearDemo").onclick=async()=>{
- if(!supabase||!restaurantId){alert("Supabase is not connected.");return;}
- if(confirm("Delete all demo orders for this restaurant?")){const {error}=await supabase.from("orders").delete().eq("restaurant_id",restaurantId);if(error)console.error(error);}
-};
+const cfg=window.ORDERLY_SUPABASE_CONFIG||{};const supabase=cfg.url&&cfg.anonKey&&!String(cfg.url).includes("REPLACE_ME")?createClient(cfg.url,cfg.anonKey):null;
+const RESTAURANT_SLUG="orderly-demo";let restaurantId=null,restaurantName="",staffRole=null,orders=[],menuItems=[],tables=[],filter="all";
+const $=id=>document.getElementById(id);const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));const money=n=>"₹"+Number(n||0).toLocaleString("en-IN");const canManage=()=>["owner","manager"].includes(staffRole);
+async function requireStaff(){if(!supabase){location.href="admin-login.html";return false;}const {data:{user}}=await supabase.auth.getUser();if(!user){location.href="admin-login.html";return false;}const r=await supabase.from("restaurants").select("id,name").eq("slug",RESTAURANT_SLUG).single();if(r.error)throw r.error;restaurantId=r.data.id;restaurantName=r.data.name;const s=await supabase.from("restaurant_staff").select("role").eq("user_id",user.id).eq("restaurant_id",restaurantId).maybeSingle();if(s.error||!s.data){await supabase.auth.signOut();location.href="admin-login.html";return false;}staffRole=s.data.role;$("staffInfo").textContent=user.email+" · "+staffRole+" · "+restaurantName;$("connectionState").textContent="Supabase live";return true;}
+function statusName(s){return s.charAt(0).toUpperCase()+s.slice(1)}function dateFrom(o){return o.created_at?new Date(o.created_at):new Date()}
+function nextButtons(o){const b=[];if(o.status==="new")b.push('<button class="btn primary" data-status="preparing" data-id="'+o.id+'">Start preparing</button>');if(o.status==="preparing")b.push('<button class="btn primary" data-status="ready" data-id="'+o.id+'">Mark ready</button>');if(o.status==="ready")b.push('<button class="btn primary" data-status="completed" data-id="'+o.id+'">Complete</button>');if(!["completed","cancelled"].includes(o.status))b.push('<button class="btn ghost" data-status="cancelled" data-id="'+o.id+'">Cancel</button>');return b.join("")}
+function renderOrders(){const visible=orders.filter(o=>filter==="all"||o.status===filter).sort((a,b)=>dateFrom(b)-dateFrom(a));$("orders").innerHTML=visible.length?visible.map(o=>'<article class="order-card"><div class="order-top"><div><strong>#'+String(o.id).slice(-6).toUpperCase()+'</strong><div class="order-id">'+dateFrom(o).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+'</div></div><span class="pill '+esc(o.status)+'">'+statusName(o.status)+'</span></div><div style="margin-top:8px"><strong>Table '+esc(o.table_no)+'</strong> · '+esc(o.guest_name)+'</div><div class="order-items">'+(Array.isArray(o.items)?o.items:[]).map(i=>'<div class="order-item-line"><span>'+esc(i.name)+' × '+Number(i.qty||0)+'</span><strong>'+money(Number(i.price||0)*Number(i.qty||0))+'</strong></div>').join("")+'</div><div style="display:flex;justify-content:space-between;font-weight:800"><span>Total</span><span>'+money(o.total)+'</span></div><div class="order-actions">'+nextButtons(o)+'</div></article>').join(""):'<div class="empty empty-wide">No orders in this view.</div>';$("statNew").textContent=orders.filter(o=>o.status==="new").length;$("statPreparing").textContent=orders.filter(o=>o.status==="preparing").length;$("statReady").textContent=orders.filter(o=>o.status==="ready").length;$("statRevenue").textContent=money(orders.filter(o=>o.status!=="cancelled").reduce((s,o)=>s+Number(o.total||0),0));document.querySelectorAll("[data-status]").forEach(b=>b.onclick=()=>updateStatus(b.dataset.id,b.dataset.status));}
+async function loadOrders(){const {data,error}=await supabase.from("orders").select("*").eq("restaurant_id",restaurantId).order("created_at",{ascending:false});if(error)throw error;orders=data||[];renderOrders();}
+async function updateStatus(id,status){const {error}=await supabase.from("orders").update({status,updated_at:new Date().toISOString()}).eq("id",id).eq("restaurant_id",restaurantId);if(error)alert("Could not update order: "+error.message)}
+async function loadMenu(){const {data,error}=await supabase.from("menu_items").select("id,name,description,price,category,is_available,updated_at").eq("restaurant_id",restaurantId).order("category").order("name");if(error)throw error;menuItems=data||[];renderMenu();}
+function renderMenu(){$("menuManagerCard").querySelector("h2").textContent=canManage()?"Menu management":"Menu";$("menuAccessNote").hidden=canManage();$("addMenuBtn").disabled=!canManage();$("menuList").innerHTML=menuItems.length?menuItems.map(m=>'<article class="manager-card"><div class="order-top"><div><strong>'+esc(m.name)+'</strong><div class="small">'+esc(m.category)+'</div></div><span class="pill '+(m.is_available?"ready":"cancelled")+'">'+(m.is_available?"Available":"Hidden")+'</span></div><p class="small">'+esc(m.description||"No description")+'</p><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><strong>'+money(m.price)+'</strong><div class="order-actions"><button class="btn ghost" data-menu-toggle="'+m.id+'">'+(m.is_available?"Hide":"Show")+'</button>'+(canManage()?'<button class="btn primary" data-menu-edit="'+m.id+'">Edit</button><button class="btn ghost" data-menu-delete="'+m.id+'">Delete</button>':"")+'</div></div></article>').join(""):'<div class="empty empty-wide">No menu items yet.</div>';document.querySelectorAll("[data-menu-toggle]").forEach(b=>b.onclick=()=>toggleMenu(b.dataset.menuToggle));document.querySelectorAll("[data-menu-edit]").forEach(b=>b.onclick=()=>editMenu(b.dataset.menuEdit));document.querySelectorAll("[data-menu-delete]").forEach(b=>b.onclick=()=>deleteMenu(b.dataset.menuDelete));}
+async function toggleMenu(id){const item=menuItems.find(x=>x.id===id);if(!item)return;const {error}=await supabase.from("menu_items").update({is_available:!item.is_available,updated_at:new Date().toISOString()}).eq("id",id).eq("restaurant_id",restaurantId);if(error)alert(error.message);else await loadMenu();}
+async function editMenu(id){const item=menuItems.find(x=>x.id===id);if(!item)return;const name=prompt("Item name",item.name);if(name===null)return;const price=prompt("Price",item.price);if(price===null)return;const desc=prompt("Description",item.description||"");if(desc===null)return;const category=prompt("Category",item.category||"Menu");if(category===null)return;const p=Number(price);if(!name.trim()||!Number.isFinite(p)||p<0){alert("Enter a valid name and price.");return;}const {error}=await supabase.from("menu_items").update({name:name.trim(),price:p,description:desc.trim(),category:category.trim()||"Menu",updated_at:new Date().toISOString()}).eq("id",id).eq("restaurant_id",restaurantId);if(error)alert(error.message);else await loadMenu();}
+async function deleteMenu(id){const item=menuItems.find(x=>x.id===id);if(!item)return;if(!confirm("Delete \""+item.name+"\" from the menu?"))return;const {error}=await supabase.from("menu_items").delete().eq("id",id).eq("restaurant_id",restaurantId);if(error)alert(error.message);else await loadMenu();}
+async function addMenu(){if(!canManage())return;const name=$("menuName").value.trim(),desc=$("menuDesc").value.trim(),price=Number($("menuPrice").value),category=$("menuCategory").value.trim()||"Menu";if(!name||!Number.isFinite(price)||price<0){alert("Enter a name and valid price.");return;}const {error}=await supabase.from("menu_items").insert({restaurant_id:restaurantId,name,description:desc,price,category,is_available:true});if(error)alert(error.message);else{$("menuName").value="";$("menuDesc").value="";$("menuPrice").value="";$("menuCategory").value="";await loadMenu();}}
+async function loadTables(){const {data,error}=await supabase.from("tables").select("id,table_no,qr_token,is_active,created_at").eq("restaurant_id",restaurantId).order("table_no");if(error)throw error;tables=data||[];renderTables();}
+function qrUrl(table){return new URL("index.html",location.href).href+"?restaurant="+encodeURIComponent(RESTAURANT_SLUG)+"&table="+encodeURIComponent(table)}
+function renderTables(){$("addTableBtn").disabled=!canManage();$("tableList").innerHTML=tables.length?tables.map(t=>'<article class="table-card"><div class="order-top"><div><strong>'+esc(t.table_no)+'</strong><div class="small">'+(t.is_active?"Active":"Inactive")+'</div></div><span class="pill '+(t.is_active?"ready":"cancelled")+'">'+(t.is_active?"Live":"Off")+'</span></div><div class="table-row"><label class="toggle"><input type="checkbox" data-table-active="'+t.id+'" '+(t.is_active?"checked":"")+' '+(canManage()?"":"disabled")+'> Active</label><a class="btn ghost" target="_blank" rel="noopener" href="'+qrUrl(t.table_no)+'">Open menu</a></div><div class="qr-link">'+esc(qrUrl(t.table_no))+'</div><div class="order-actions"><a class="btn ghost" target="_blank" rel="noopener" href="qr-generator.html?restaurant='+encodeURIComponent(RESTAURANT_SLUG)+'&table='+encodeURIComponent(t.table_no)+'">QR generator</a></div></article>').join(""):'<div class="empty empty-wide">No tables configured.</div>';document.querySelectorAll("[data-table-active]").forEach(x=>x.onchange=()=>setTableActive(x.dataset.tableActive,x.checked));}
+async function setTableActive(id,active){if(!canManage())return;const {error}=await supabase.from("tables").update({is_active:active}).eq("id",id).eq("restaurant_id",restaurantId);if(error)alert(error.message);else await loadTables();}
+async function addTable(){if(!canManage())return;const tableNo=$("newTableNo").value.trim().toUpperCase();if(!/^T[A-Z0-9-]+$/.test(tableNo)){alert("Use a table number such as T7.");return;}const {error}=await supabase.from("tables").insert({restaurant_id:restaurantId,table_no:tableNo,is_active:true});if(error)alert(error.code==="23505"?"That table already exists.":error.message);else{$("newTableNo").value="";await loadTables();}}
+function activateTabs(){$(".admin-tabs").onclick=e=>{const b=e.target.closest("[data-section]");if(!b)return;document.querySelectorAll(".tab-btn").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll("main section[id$=Section]").forEach(x=>x.hidden=true);$(b.dataset.section).hidden=false;};$("filters").onclick=e=>{const b=e.target.closest("[data-filter]");if(!b)return;filter=b.dataset.filter;document.querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x===b));renderOrders();};$("logoutBtn").onclick=async()=>{await supabase.auth.signOut();location.href="admin-login.html"};$("addMenuBtn").onclick=addMenu;$("addTableBtn").onclick=addTable;}
+async function init(){try{if(!await requireStaff())return;activateTabs();await Promise.all([loadOrders(),loadMenu(),loadTables()]);supabase.channel("orderly-orders").on("postgres_changes",{event:"*",schema:"public",table:"orders",filter:"restaurant_id=eq."+restaurantId},async()=>{try{await loadOrders()}catch(e){console.error(e)}}).subscribe();supabase.channel("orderly-management").on("postgres_changes",{event:"*",schema:"public",table:"menu_items",filter:"restaurant_id=eq."+restaurantId},async()=>{try{await loadMenu()}catch(e){console.error(e)}}).subscribe()}catch(e){console.error(e);$("connectionState").textContent="Supabase error";$("staffInfo").textContent=e.message||"Could not load dashboard."}}
 init();
