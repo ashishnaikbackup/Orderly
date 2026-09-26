@@ -1,82 +1,77 @@
-# 🍽️ Orderly — On Table Ordering
+# 🍽️ Orderly — QR Restaurant Ordering & Live Dashboard
 
-**Developer:** Ashish Naik
-**Version:** Final Release
-**Deployment:** GitHub Pages
+Orderly is a project-focused QR ordering system:
 
----
+**Scan table QR → Browse menu → Build cart → Place order → Restaurant receives live order → Update status**
 
-## 🌐 Live Demo
+The original 2025 version was a front-end-only prototype. The current version keeps that idea and adds the missing backend and operations layer.
 
-👉 [https://ashishnaikbackup.github.io/Orderly/](https://ashishnaikbackup.github.io/Orderly/)
+## Pages
 
-Scan the table QR code, browse the menu, and place an order — all from the browser, no app install needed.
+- `index.html` — guest ordering page
+- `admin.html` — restaurant live-order dashboard
+- `qr-generator.html` — table-specific QR link generator
 
----
+## Features
 
-## 🚀 How It Works
+- Table-aware QR links using URL parameters
+- Mobile-first ordering UI
+- Cart quantity controls and totals
+- Firestore order persistence
+- Live dashboard with status flow: **New → Preparing → Ready → Completed**
+- Cancel order flow
+- Dashboard status counters and revenue summary
+- Demo mode when Firebase is not configured
+- QR generator for table tent cards
 
-1. Guest scans the **table QR code**, which opens the Orderly web menu with the table number auto-filled.
-2. Guest taps **Add** on any menu item to add it to the cart.
-3. Items can be reviewed or removed from the cart before ordering.
-4. Guest enters their **name** and optional **phone number**.
-5. Guest taps **Place Order** to send the order through.
+## Firebase setup
 
----
+1. Create a Firebase project.
+2. Add a Firebase Web App.
+3. Create a Firestore database.
+4. Put the Web App configuration into `firebase-config.js`.
+5. Start with `firebase.rules.example` only for local/classroom testing.
+6. Open `qr-generator.html` and create a QR link for each table.
+7. Open `admin.html` on the restaurant/kitchen screen.
 
-## ✨ Features
-
-- ✅ QR-based table auto-detection
-- ✅ Live, tap-to-add menu browsing
-- ✅ Editable cart before checkout
-- ✅ Guest name & optional phone capture
-- ✅ One-tap **Clear** to reset the cart
-- ✅ Simple, distraction-free ordering flow
-- ✅ Fully responsive UI (mobile-first, ideal for scanning at the table)
-
----
-
-## 🍔 Sample Menu
-
-| Item | Description | Price |
-|---|---|---|
-| Masala Dosa | Crispy dosa with potato filling | ₹120 |
-| Cold Coffee | Chilled & creamy | ₹80 |
-| Paneer Butter Masala | Creamy tomato gravy | ₹210 |
-| Margherita Pizza | Thin crust cheese pizza | ₹250 |
-
----
-
-## 🛠️ Tech Stack
-
-- HTML5
-- CSS3
-- JavaScript
-
----
-
-## 📁 Project Structure
+### Order document
 
 ```
-Orderly/
-├── index.html
-├── style.css
-├── app.js
-└── README.md
+{
+  restaurantId: "demo-restaurant",
+  restaurant: "Orderly Restaurant",
+  table: "T4",
+  guest: "Rahul",
+  phone: "optional",
+  items: [
+    { id: "m1", name: "Masala Dosa", price: 120, qty: 2 }
+  ],
+  total: 240,
+  status: "new",
+  createdAt: <Firestore timestamp>
+}
 ```
 
----
+## Important security note
 
-## 📄 License
+The example Firestore rules are intentionally permissive for a classroom/demo prototype. For a real deployment, use Firebase Authentication, restaurant/staff roles, and restaurant-scoped security rules.
 
-MIT License
+## Project positioning
 
----
+Orderly is best presented as an **engineering project / working prototype**, not as a claim of a novel restaurant-ordering business. The useful technical story is the integration of QR context, a customer-facing web app, cloud persistence, and a real-time operations dashboard.
 
-## 👨‍💻 Developer
+## Planned upgrades
 
-**Ashish Naik**
+- Firebase Authentication and staff roles
+- Dynamic menu management
+- Restaurant setup page
+- Kitchen display mode
+- Order history and analytics
+- Print-friendly kitchen tickets
+- Optional UPI payment integration
+- PWA/offline improvements
 
-GitHub: [https://github.com/ashishnaikbackup](https://github.com/ashishnaikbackup)
+## Developer
 
-Live Demo: [https://ashishnaikbackup.github.io/Orderly/](https://ashishnaikbackup.github.io/Orderly/)
+**Ashish Naik**  
+GitHub: https://github.com/ashishnaikbackup
